@@ -1,14 +1,14 @@
 package cn.xiaocuoben.apidoc4j.constant;
 
-/**
- * @author Frank
- * @version 2017-05-20
- */
-public class API4jConstant {
-    private API4jConstant(){}
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 
-    /**
-     * 文件输出目录
-     */
-    public static final String DOC_OUTPUT_DIRECTORY = "DOC_OUTPUT_DIRECTORY";
+/**
+ * @author 刘玉雨
+ * @version 1.0
+ */
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public class API4jConstant {
+
+    public static String DOC_OUTPUT_DIRECTORY;
 }

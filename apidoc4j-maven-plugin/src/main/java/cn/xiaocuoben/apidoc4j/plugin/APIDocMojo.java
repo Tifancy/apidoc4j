@@ -6,6 +6,7 @@ import cn.xiaocuoben.apidoc4j.utils.ContextUtils;
 import cn.xiaocuoben.apidoc4j.utils.FreemarkerRenderUtils;
 import com.sun.tools.javadoc.Main;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.artifact.Artifact;
@@ -27,6 +28,7 @@ import java.util.*;
 // * @configurator include-project-dependencies
  */
 @Data
+@EqualsAndHashCode(callSuper = false)
 public class APIDocMojo extends AbstractMojo {
 
     /**
@@ -45,6 +47,12 @@ public class APIDocMojo extends AbstractMojo {
      */
     private String output;
     /**
+     * 项目编译输出目录
+     * @parameter expression="${project.build.outputDirectory}"
+     * @required
+     */
+    private String buildOutputDirectory;
+    /**
      * @arameter expression="${project.build.sourceEncoding}"
      * @required
      */
@@ -62,7 +70,8 @@ public class APIDocMojo extends AbstractMojo {
         commandArgumentList.addAll(Arrays.asList("-sourcepath", this.resourceDirectory));
         commandArgumentList.addAll(Arrays.asList("-encoding", this.encoding));
 
-        commandArgumentList.addAll(Arrays.asList("-classpath", this.resolveProjectDependenciesPath()));
+        String classpath = this.buildOutputDirectory + File.separator +this.resolveProjectDependenciesPath();
+        commandArgumentList.addAll(Arrays.asList("-classpath", classpath));
 
         commandArgumentList.addAll(Arrays.asList("-subpackages",this.basePackage));
 
@@ -115,7 +124,6 @@ public class APIDocMojo extends AbstractMojo {
 
     public String resolveProjectDependenciesPath(){
         PluginDescriptor pluginDescriptor = (PluginDescriptor) this.getPluginContext().get("pluginDescriptor");
-        MavenProject mavenProject = (MavenProject) this.getPluginContext().get("project");
 
         Artifact pluginArtifact = pluginDescriptor.getPluginArtifact();
         StringBuilder filePathBuilder = new StringBuilder(pluginArtifact.getFile().toString());

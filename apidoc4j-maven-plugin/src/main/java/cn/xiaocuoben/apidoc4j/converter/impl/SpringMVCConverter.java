@@ -3,6 +3,7 @@ package cn.xiaocuoben.apidoc4j.converter.impl;
 import cn.xiaocuoben.apidoc4j.converter.Converter;
 import cn.xiaocuoben.apidoc4j.model.*;
 import cn.xiaocuoben.apidoc4j.utils.FreemarkerRenderUtils;
+import cn.xiaocuoben.apidoc4j.utils.ReflectionUtils;
 import com.sun.javadoc.*;
 import freemarker.template.TemplateException;
 import org.springframework.stereotype.Controller;
@@ -10,6 +11,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -36,11 +39,11 @@ public class SpringMVCConverter implements Converter {
             List<MethodDoc> methodDocList = this.findValidMethod(classDoc, RequestMapping.class);
 
             MethodComment methodComment = new MethodComment();
-//            methodComment.setComment(parameterDoc.commentText());
-//            methodComment.setRawComment(parameterDoc.getRawCommentText());
+
 
             for (MethodDoc methodDoc : methodDocList) {
                 AnnotationDesc requestMappingAnnotationDesc = this.findAnnotation(methodDoc, RequestMapping.class);
+//                fasdf
                 String method = "GET";
                 if (requestMappingAnnotationDesc != null) {
                     requestMappingAnnotationDesc.annotationType();
@@ -146,7 +149,11 @@ public class SpringMVCConverter implements Converter {
             fieldCommentList.add(fieldComment);
         }
         return fieldCommentList;
-
     }
+
+//    public void findAnnotationField(ClassDoc classDoc,MethodDoc methodDoc,){
+//        Parameter[] parameters = methodDoc.parameters();
+////        ReflectionUtils.findAnnotationField(classDoc.qualifiedName(),methodDoc.name(),"value",RequestMapping.class,)
+//    }
 
 }

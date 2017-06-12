@@ -28,4 +28,8 @@ public class UserController {
         responseWrapper.setMsg("登录成功");
         return responseWrapper;
     }
+
+    private Object cc(UserLoginRequest userLoginRequest){
+        return new Object();
+    }
 }
