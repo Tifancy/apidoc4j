@@ -13,14 +13,14 @@ import org.springframework.web.bind.annotation.RequestMethod;
  * @date 2017-05-21
  */
 @Controller
-@RequestMapping("/user")
+@RequestMapping(value = "/user",method = {RequestMethod.POST,RequestMethod.PUT})
 public class UserController {
     /**
      * 登录
      */
-    @RequestMapping(value = "/login",method = RequestMethod.POST)
-    public ResponseWrapper login(UserLoginRequest userLoginRequest){
-        ResponseWrapper responseWrapper = new ResponseWrapper<User>();
+    @RequestMapping(value = "/login",method = {RequestMethod.POST,RequestMethod.GET})
+    public ResponseWrapper<User> login(UserLoginRequest userLoginRequest){
+        ResponseWrapper<User> responseWrapper = new ResponseWrapper<>();
         responseWrapper.setIsSuccess(Boolean.TRUE);
         User user = new User();
         user.setUsername("zs");

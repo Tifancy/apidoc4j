@@ -3,20 +3,23 @@ package cn.xiaocuoben.apidoc4j.converter.impl;
 import cn.xiaocuoben.apidoc4j.converter.Converter;
 import cn.xiaocuoben.apidoc4j.model.*;
 import cn.xiaocuoben.apidoc4j.utils.FreemarkerRenderUtils;
-import cn.xiaocuoben.apidoc4j.utils.ReflectionUtils;
-import com.sun.javadoc.*;
+import com.sun.javadoc.ClassDoc;
+import com.sun.javadoc.MethodDoc;
+import com.sun.javadoc.Parameter;
+import com.sun.javadoc.RootDoc;
 import freemarker.template.TemplateException;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static cn.xiaocuoben.apidoc4j.utils.DocUtils.*;
 
 /**
  * @author Frank
@@ -26,7 +29,7 @@ public class SpringMVCConverter implements Converter {
 
     @Override
     public void convert(RootDoc rootDoc) throws IOException, TemplateException {
-        List<ClassDoc> classDocList = this.findValidClass(rootDoc, Controller.class, RestController.class);
+        List<ClassDoc> classDocList = findValidClass(rootDoc, Controller.class, RestController.class);
         List<ClassComment> classCommentList = new ArrayList<>();
 
         for (ClassDoc classDoc : classDocList) {
@@ -34,35 +37,47 @@ public class SpringMVCConverter implements Converter {
             classComment.setComment(classDoc.commentText());
             classComment.setRawComment(classComment.getRawComment());
 
+            RequestMapping controllerRequestMapping = findClassAnnotation(classDoc, RequestMapping.class);
+
             //METHOD
             List<MethodComment> methodCommentList = new ArrayList<>();
-            List<MethodDoc> methodDocList = this.findValidMethod(classDoc, RequestMapping.class);
-
-            MethodComment methodComment = new MethodComment();
-
+            List<MethodDoc> methodDocList = findValidMethod(classDoc, RequestMapping.class);
 
             for (MethodDoc methodDoc : methodDocList) {
-                AnnotationDesc requestMappingAnnotationDesc = this.findAnnotation(methodDoc, RequestMapping.class);
-//                fasdf
-                String method = "GET";
-                if (requestMappingAnnotationDesc != null) {
-                    requestMappingAnnotationDesc.annotationType();
+                MethodComment methodComment = new MethodComment();
+                methodComment.setComment(methodDoc.commentText());
+                methodComment.setRawComment(methodDoc.getRawCommentText());
+
+                RequestMapping requestMapping = findMethodAnnotation(classDoc,methodDoc, RequestMapping.class);
+                methodComment.setUri(controllerRequestMapping.value()[0] + requestMapping.value()[0]);
+                StringBuilder methodBuilder = new StringBuilder();
+                if (requestMapping != null) {
+                    if(requestMapping.method().length > 0){
+                        for (RequestMethod requestMethod : requestMapping.method()) {
+                            methodBuilder.append(requestMethod.name()).append(",");
+                        }
+                        methodBuilder.deleteCharAt(methodBuilder.length() - 1);
+                    }else{
+                        methodBuilder.append("GET");
+                    }
+                }else{
+                    methodBuilder.append("GET");
                 }
-                methodComment.setRequestMethod(method);
+                methodComment.setRequestMethod(methodBuilder.toString());
 
                 //参数
                 List<MethodArgumentComment> methodArgumentCommentList = new ArrayList<>();
                 MethodArgumentComment methodArgumentComment = new MethodArgumentComment();
 
                 for (Parameter parameter : methodDoc.parameters()) {
-                    List<FieldComment> fieldCommentList = this.convertToFieldCommentList(rootDoc, parameter);
+                    List<FieldComment> fieldCommentList = convertToFieldCommentList(rootDoc, parameter);
                     methodArgumentComment.setFieldCommentList(fieldCommentList);
                     methodArgumentCommentList.add(methodArgumentComment);
                 }
                 methodComment.setMethodArgumentCommentList(methodArgumentCommentList);
                 //返回值
                 ClassDoc returnClassDoc = methodDoc.returnType().asClassDoc();
-                List<FieldComment> fieldCommentList = this.convertToFieldComment(returnClassDoc);
+                List<FieldComment> fieldCommentList = convertToFieldComment(returnClassDoc);
 
                 MethodReturnComment methodReturnComment = new MethodReturnComment();
                 methodReturnComment.setFieldCommentList(fieldCommentList);
@@ -79,81 +94,5 @@ public class SpringMVCConverter implements Converter {
         commentMap.put("classCommentList", classCommentList);
         FreemarkerRenderUtils.render(commentMap);
     }
-
-    public List<ClassDoc> findValidClass(RootDoc rootDoc, String clazzName) {
-        List<ClassDoc> classDocList = new ArrayList<>();
-        for (ClassDoc classDoc : rootDoc.classes()) {
-            if (classDoc.qualifiedTypeName().equals(clazzName)) {
-                classDocList.add(classDoc);
-            }
-        }
-        return classDocList;
-    }
-
-    public List<ClassDoc> findValidClass(RootDoc rootDoc, Class... annotationClazzs) {
-        List<ClassDoc> classDocList = new ArrayList<>();
-        for (ClassDoc classDoc : rootDoc.classes()) {
-            for (AnnotationDesc annotationDesc : classDoc.annotations()) {
-                for (Class annotationClazz : annotationClazzs) {
-                    if (annotationDesc.annotationType().qualifiedTypeName().equals(annotationClazz.getName())) {
-                        classDocList.add(classDoc);
-                    }
-                }
-            }
-        }
-        return classDocList;
-    }
-
-    public List<MethodDoc> findValidMethod(ClassDoc classDoc, Class... annotationClazzs) {
-        List<MethodDoc> methodDocList = new ArrayList<>();
-        for (MethodDoc methodDoc : classDoc.methods(false)) {
-            for (AnnotationDesc methodAnnotationDesc : methodDoc.annotations()) {
-                for (Class annotationClazz : annotationClazzs) {
-                    if (methodAnnotationDesc.annotationType().qualifiedTypeName().equals(annotationClazz.getTypeName())) {
-                        methodDocList.add(methodDoc);
-                    }
-                }
-            }
-        }
-        return methodDocList;
-    }
-
-    public AnnotationDesc findAnnotation(ProgramElementDoc doc, Class annotationClazz) {
-        for (AnnotationDesc annotationDesc : doc.annotations()) {
-            if (annotationClazz.equals(annotationDesc.annotationType().qualifiedName())) {
-                return annotationDesc;
-            }
-        }
-        return null;
-    }
-
-    public List<FieldComment> convertToFieldCommentList(RootDoc rootDoc, Parameter parameter) {
-        List<FieldComment> fieldCommentList = new ArrayList<>();
-
-        List<ClassDoc> parameterClassDocList = this.findValidClass(rootDoc, parameter.type().qualifiedTypeName());
-        for (ClassDoc parameterClassDoc : parameterClassDocList) {
-            List<FieldComment> classFieldCommentList = this.convertToFieldComment(parameterClassDoc);
-            fieldCommentList.addAll(classFieldCommentList);
-        }
-        return fieldCommentList;
-    }
-
-    public List<FieldComment> convertToFieldComment(ClassDoc classDoc) {
-        List<FieldComment> fieldCommentList = new ArrayList<>();
-        for (FieldDoc fieldDoc : classDoc.fields(false)) {
-            FieldComment fieldComment = new FieldComment();
-            fieldComment.setComment(fieldDoc.commentText());
-            fieldComment.setRawComment(fieldDoc.getRawCommentText());
-            fieldComment.setName(fieldDoc.name());
-            fieldComment.setTypeName(fieldDoc.type().simpleTypeName());
-            fieldCommentList.add(fieldComment);
-        }
-        return fieldCommentList;
-    }
-
-//    public void findAnnotationField(ClassDoc classDoc,MethodDoc methodDoc,){
-//        Parameter[] parameters = methodDoc.parameters();
-////        ReflectionUtils.findAnnotationField(classDoc.qualifiedName(),methodDoc.name(),"value",RequestMapping.class,)
-//    }
 
 }

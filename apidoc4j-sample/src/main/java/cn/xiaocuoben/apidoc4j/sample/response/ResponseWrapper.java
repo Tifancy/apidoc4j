@@ -8,7 +8,16 @@ import lombok.Data;
  */
 @Data
 public class ResponseWrapper<T> {
+    /**
+     * 是否成功
+     */
     private Boolean isSuccess;
+    /**
+     * 提示信息
+     */
     private String msg;
+    /**
+     * 实际数据
+     */
     private T data;
 }

@@ -1,8 +1,13 @@
 <#list classCommentList as classComment>
-#### ${classComment.comment!""}
+##${classComment.comment!""}
+
 <#list classComment.methodCommentList as methodComment>
-${methodComment.comment!""}
-请求方式：${methodComment.requestMethod}
+
+###${methodComment_index + 1}.${methodComment.comment!""}
+
+```
+${methodComment.requestMethod} ${methodComment.uri}
+```
 
 参数：
 

@@ -16,6 +16,10 @@ public class MethodComment extends AbstractComment {
      * HTTP请求方法
      */
     private String requestMethod;
+    /**
+     * 请求地址URI
+     */
+    private String uri;
 
     private List<MethodArgumentComment> methodArgumentCommentList = new ArrayList<>();
 

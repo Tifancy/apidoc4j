@@ -17,6 +17,8 @@ import org.apache.maven.plugin.descriptor.PluginDescriptor;
 import org.apache.maven.project.MavenProject;
 
 import java.io.*;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.nio.file.Path;
 import java.util.*;
 
@@ -70,7 +72,7 @@ public class APIDocMojo extends AbstractMojo {
         commandArgumentList.addAll(Arrays.asList("-sourcepath", this.resourceDirectory));
         commandArgumentList.addAll(Arrays.asList("-encoding", this.encoding));
 
-        String classpath = this.buildOutputDirectory + File.separator +this.resolveProjectDependenciesPath();
+        String classpath = this.buildOutputDirectory + File.pathSeparator + this.resolveProjectDependenciesPath();
         commandArgumentList.addAll(Arrays.asList("-classpath", classpath));
 
         commandArgumentList.addAll(Arrays.asList("-subpackages",this.basePackage));
@@ -142,10 +144,19 @@ public class APIDocMojo extends AbstractMojo {
     }
 
     public void setUp(){
+        //渲染配置
         try {
             File docFile = new File(ContextUtils.get(API4jConstant.DOC_OUTPUT_DIRECTORY)).toPath().toFile();
             FreemarkerRenderUtils.OUT = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(docFile)));
         } catch (FileNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+        //项目依赖
+        PluginDescriptor pluginDescriptor = (PluginDescriptor) this.getPluginContext().get("pluginDescriptor");
+        File projectClasspath = new File(this.buildOutputDirectory);
+        try {
+            pluginDescriptor.getClassRealm().addURL(projectClasspath.toURL());
+        } catch (MalformedURLException e) {
             throw new RuntimeException(e);
         }
     }
