@@ -45,7 +45,9 @@ public class Filler {
                 if (!fieldComment.getTypeName().contains("java.lang")) {
                     jsonBuilder
                             .append(prefix + "\t")
+                            .append("\"")
                             .append(fieldComment.getName())
+                            .append("\"")
                             .append(":");
 
                     StringBuilder typeNameBuilder = this.renderFieldList(fieldComment, prefix + "\t");
@@ -69,7 +71,9 @@ public class Filler {
                     }
                     jsonBuilder
                             .append(prefix + "\t")
+                            .append("\"")
                             .append(fieldComment.getName())
+                            .append("\"")
                             .append(":")
                             .append("\"");
                     jsonBuilder.append(fieldComment.getTypeName())
