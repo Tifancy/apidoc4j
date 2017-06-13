@@ -12,4 +12,6 @@ import java.util.List;
 public class MethodArgumentComment{
 
     private List<FieldComment> fieldCommentList = new ArrayList<>();
+
+    private String json;
 }

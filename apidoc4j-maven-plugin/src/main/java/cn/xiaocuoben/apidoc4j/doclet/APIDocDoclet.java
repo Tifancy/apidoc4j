@@ -3,6 +3,7 @@ package cn.xiaocuoben.apidoc4j.doclet;
 import cn.xiaocuoben.apidoc4j.converter.ConverterManager;
 import com.sun.javadoc.*;
 import com.sun.tools.doclets.formats.html.ConfigurationImpl;
+import com.sun.tools.doclets.standard.Standard;
 import freemarker.template.TemplateException;
 
 import java.io.IOException;
@@ -10,7 +11,7 @@ import java.io.IOException;
 /**
  * @author Frank
  */
-public class APIDocDoclet extends Doclet {
+public class APIDocDoclet extends Standard {
 
 
     public static boolean start(RootDoc root) {

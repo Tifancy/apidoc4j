@@ -12,23 +12,15 @@ ${methodComment.requestMethod} ${methodComment.uri}
 参数：
 
 ```
-{
-<#list methodComment.methodArgumentCommentList as argumentComment>
-    <#list argumentComment.fieldCommentList as fieldComment>
-    "${fieldComment.name!""}":${fieldComment.typeName}<#if (fieldComment_has_next)>,</#if>//${fieldComment.comment!""}
-    </#list>
+<#list methodComment.methodArgumentCommentList as methodArgument>
+${methodArgument.json}
 </#list>
-}
 ```
 
 返回值：
 
 ```
-{
-<#list methodComment.methodReturnComment.fieldCommentList as fieldComment>
-    "${fieldComment.name!""}":${fieldComment.typeName}<#if (fieldComment_has_next)>,</#if>//${fieldComment.comment!""}
-</#list>
-}
+${methodComment.methodReturnTypeCommentJson}
 ```
 </#list>
 </#list>

@@ -2,11 +2,9 @@ package cn.xiaocuoben.apidoc4j.converter.impl;
 
 import cn.xiaocuoben.apidoc4j.converter.Converter;
 import cn.xiaocuoben.apidoc4j.model.*;
+import cn.xiaocuoben.apidoc4j.render.Filler;
 import cn.xiaocuoben.apidoc4j.utils.FreemarkerRenderUtils;
-import com.sun.javadoc.ClassDoc;
-import com.sun.javadoc.MethodDoc;
-import com.sun.javadoc.Parameter;
-import com.sun.javadoc.RootDoc;
+import com.sun.javadoc.*;
 import freemarker.template.TemplateException;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -71,9 +69,9 @@ public class SpringMVCConverter implements Converter {
                     methodArgumentCommentList.add(methodArgumentComment);
                 }
                 methodComment.setMethodArgumentCommentList(methodArgumentCommentList);
+
                 //返回值
-                ClassDoc returnClassDoc = methodDoc.returnType().asClassDoc();
-                List<FieldComment> fieldCommentList  = convertToFieldComment(rootDoc,returnClassDoc,10,0);
+                List<FieldComment> fieldCommentList  = convertToFieldComment(rootDoc,methodDoc.returnType(),3,0);
 
                 MethodReturnComment methodReturnComment = new MethodReturnComment();
                 methodReturnComment.setFieldCommentList(fieldCommentList);
@@ -86,6 +84,8 @@ public class SpringMVCConverter implements Converter {
             classCommentList.add(classComment);
         }
 
+        Filler filler = new Filler();
+        filler.fillClass(classCommentList);
         Map<String, Object> commentMap = new HashMap<>();
         commentMap.put("classCommentList", classCommentList);
         FreemarkerRenderUtils.render(commentMap);

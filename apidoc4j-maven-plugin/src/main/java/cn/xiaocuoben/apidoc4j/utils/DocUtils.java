@@ -2,11 +2,16 @@ package cn.xiaocuoben.apidoc4j.utils;
 
 import cn.xiaocuoben.apidoc4j.model.FieldComment;
 import com.sun.javadoc.*;
+import com.sun.javadoc.Parameter;
+import com.sun.javadoc.Type;
 
 import java.lang.annotation.Annotation;
-import java.lang.reflect.Method;
+import java.lang.reflect.*;
+import java.lang.reflect.TypeVariable;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author Frank
@@ -57,7 +62,7 @@ public class DocUtils {
         List<FieldComment> fieldCommentList = new ArrayList<>();
         List<ClassDoc> parameterClassDocList = findValidClass(rootDoc, parameter.type().qualifiedTypeName());
         for (ClassDoc parameterClassDoc : parameterClassDocList) {
-            List<FieldComment> classFieldCommentList = convertToFieldComment(rootDoc,parameterClassDoc,10,0);
+            List<FieldComment> classFieldCommentList = convertToFieldComment(rootDoc,parameterClassDoc,3,0);
             fieldCommentList.addAll(classFieldCommentList);
         }
         return fieldCommentList;
@@ -68,19 +73,39 @@ public class DocUtils {
      * @param times 当前次数
      * @param limit 递归次数限制
      */
-    public static List<FieldComment> convertToFieldComment(RootDoc rootDoc,ClassDoc classDoc,int limit, int times) {
+    public static List<FieldComment> convertToFieldComment(RootDoc rootDoc,Type returnType,int limit, int times) {
         if(times >= limit){
             return null;
         }
+
         List<FieldComment> fieldCommentList = new ArrayList<>();
-        for (FieldDoc fieldDoc : classDoc.fields(false)) {
+        Map<String,Type> parameterizedTypeMap = new HashMap<>();
+
+        if(returnType.asParameterizedType() != null){
+            Type[] typeArguments = returnType.asParameterizedType().typeArguments();
+            TypeVariable<? extends Class<?>>[] typeParameters = ReflectionUtils.forName(returnType.qualifiedTypeName()).getTypeParameters();
+            for (int i = 0; i < typeArguments.length; i++) {
+                parameterizedTypeMap.put(typeParameters[i].getName(),typeArguments[i]);
+            }
+        }
+
+        for (FieldDoc fieldDoc : returnType.asClassDoc().fields(false)) {
             List<ClassDoc> classDocList = findValidClass(rootDoc, fieldDoc.type().qualifiedTypeName());
 
             FieldComment fieldComment = new FieldComment();
             fieldComment.setComment(fieldDoc.commentText());
             fieldComment.setRawComment(fieldDoc.getRawCommentText());
             fieldComment.setName(fieldDoc.name());
-            fieldComment.setTypeName(fieldDoc.type().simpleTypeName());
+
+            Type parameterizedType = parameterizedTypeMap.get(fieldDoc.type().qualifiedTypeName());
+            String typeName;
+            if(parameterizedType == null){
+                typeName = fieldDoc.type().qualifiedTypeName();
+            }else{
+                typeName = parameterizedType.qualifiedTypeName();
+                classDocList.add(parameterizedType.asClassDoc());
+            }
+            fieldComment.setTypeName(typeName);
 
             for (ClassDoc doc : classDocList) {
                 List<FieldComment> subFieldCommentList = convertToFieldComment(rootDoc,doc,limit,++times);

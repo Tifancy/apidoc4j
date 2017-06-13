@@ -24,4 +24,9 @@ public class MethodComment extends AbstractComment {
     private List<MethodArgumentComment> methodArgumentCommentList = new ArrayList<>();
 
     private MethodReturnComment methodReturnComment;
+
+    /**
+     * 返回值JSON
+     */
+    private String methodReturnTypeCommentJson;
 }

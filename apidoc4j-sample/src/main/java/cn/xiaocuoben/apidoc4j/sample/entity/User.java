@@ -1,25 +1,23 @@
 package cn.xiaocuoben.apidoc4j.sample.entity;
 
+import lombok.Data;
+
 /**
  * 用户类
  * @author Frank
  * @date 2017-05-10
  */
+@Data
 public class User {
 
     /**
      * 用户名
      */
     private String username;
-
     /**
-     *
-     * @param username 用户名称
+     * 密码
      */
-    public User setUsername(String username) {
-        this.username = username;
-        return this;
-    }
+    private String password;
 
     /**
      * 子用户
