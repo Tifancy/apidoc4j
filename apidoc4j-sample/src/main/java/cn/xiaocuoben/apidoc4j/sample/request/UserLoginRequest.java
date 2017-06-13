@@ -16,4 +16,8 @@ public class UserLoginRequest {
      * 密码
      */
     private String password;
+    /**
+     * 测试
+     */
+    private UserLoginRequest userLoginRequest;
 }

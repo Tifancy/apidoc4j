@@ -55,23 +55,37 @@ public class DocUtils {
 
     public static List<FieldComment> convertToFieldCommentList(RootDoc rootDoc, Parameter parameter) {
         List<FieldComment> fieldCommentList = new ArrayList<>();
-
         List<ClassDoc> parameterClassDocList = findValidClass(rootDoc, parameter.type().qualifiedTypeName());
         for (ClassDoc parameterClassDoc : parameterClassDocList) {
-            List<FieldComment> classFieldCommentList = convertToFieldComment(parameterClassDoc);
+            List<FieldComment> classFieldCommentList = convertToFieldComment(rootDoc,parameterClassDoc,10,0);
             fieldCommentList.addAll(classFieldCommentList);
         }
         return fieldCommentList;
     }
 
-    public static List<FieldComment> convertToFieldComment(ClassDoc classDoc) {
+    /**
+     * 递归获取所有属性，超过递归次数之后停止继续获取
+     * @param times 当前次数
+     * @param limit 递归次数限制
+     */
+    public static List<FieldComment> convertToFieldComment(RootDoc rootDoc,ClassDoc classDoc,int limit, int times) {
+        if(times >= limit){
+            return null;
+        }
         List<FieldComment> fieldCommentList = new ArrayList<>();
         for (FieldDoc fieldDoc : classDoc.fields(false)) {
+            List<ClassDoc> classDocList = findValidClass(rootDoc, fieldDoc.type().qualifiedTypeName());
+
             FieldComment fieldComment = new FieldComment();
             fieldComment.setComment(fieldDoc.commentText());
             fieldComment.setRawComment(fieldDoc.getRawCommentText());
             fieldComment.setName(fieldDoc.name());
             fieldComment.setTypeName(fieldDoc.type().simpleTypeName());
+
+            for (ClassDoc doc : classDocList) {
+                List<FieldComment> subFieldCommentList = convertToFieldComment(rootDoc,doc,limit,++times);
+                fieldComment.setFieldCommentList(subFieldCommentList);
+            }
             fieldCommentList.add(fieldComment);
         }
         return fieldCommentList;

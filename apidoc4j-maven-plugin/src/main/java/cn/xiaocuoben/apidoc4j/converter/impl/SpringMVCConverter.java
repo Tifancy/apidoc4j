@@ -51,7 +51,6 @@ public class SpringMVCConverter implements Converter {
                 RequestMapping requestMapping = findMethodAnnotation(classDoc,methodDoc, RequestMapping.class);
                 methodComment.setUri(controllerRequestMapping.value()[0] + requestMapping.value()[0]);
                 StringBuilder methodBuilder = new StringBuilder();
-                if (requestMapping != null) {
                     if(requestMapping.method().length > 0){
                         for (RequestMethod requestMethod : requestMapping.method()) {
                             methodBuilder.append(requestMethod.name()).append(",");
@@ -60,9 +59,6 @@ public class SpringMVCConverter implements Converter {
                     }else{
                         methodBuilder.append("GET");
                     }
-                }else{
-                    methodBuilder.append("GET");
-                }
                 methodComment.setRequestMethod(methodBuilder.toString());
 
                 //参数
@@ -77,7 +73,7 @@ public class SpringMVCConverter implements Converter {
                 methodComment.setMethodArgumentCommentList(methodArgumentCommentList);
                 //返回值
                 ClassDoc returnClassDoc = methodDoc.returnType().asClassDoc();
-                List<FieldComment> fieldCommentList = convertToFieldComment(returnClassDoc);
+                List<FieldComment> fieldCommentList  = convertToFieldComment(rootDoc,returnClassDoc,10,0);
 
                 MethodReturnComment methodReturnComment = new MethodReturnComment();
                 methodReturnComment.setFieldCommentList(fieldCommentList);

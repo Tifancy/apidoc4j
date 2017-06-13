@@ -20,4 +20,9 @@ public class User {
         this.username = username;
         return this;
     }
+
+    /**
+     * 子用户
+     */
+    private User user;
 }

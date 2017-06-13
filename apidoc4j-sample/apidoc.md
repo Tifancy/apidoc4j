@@ -12,7 +12,8 @@ POST,GET /user/login
 ```
 {
     "userName":String,//用户名
-    "password":String//密码
+    "password":String,//密码
+    "userLoginRequest":UserLoginRequest//测试
 }
 ```
 
