@@ -106,19 +106,6 @@ public class APIDocMojo extends AbstractMojo {
         return this;
     }
 
-    public String findPackages(){
-        Collection<File> files = FileUtils.listFiles(new File(this.resourceDirectory), new String[]{"java"}, true);
-        List<String> packageNameList = new ArrayList<>();
-        for (File file : files) {
-            Path path = file.toPath();
-            Path relativePath = this.convertToRelativePath(path);
-            String relativePathStr = relativePath.getParent().toString();
-            String packageName = StringUtils.replaceChars(relativePathStr, File.separatorChar, '.');
-            packageNameList.add(packageName);
-        }
-        return StringUtils.join(packageNameList," ");
-    }
-
     public Path convertToRelativePath(Path absolutePath){
         Path sourcePath = new File(this.resourceDirectory).toPath();
         return sourcePath.relativize(absolutePath);
