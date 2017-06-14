@@ -65,7 +65,6 @@ public class APIDocMojo extends AbstractMojo {
         ContextUtils.put(API4jConstant.DOC_OUTPUT_DIRECTORY, this.output);
         this.setUp();
         String docletClassName = APIDocDoclet.class.getName();
-        this.resolveProjectDependenciesPath();
 
         List<String> commandArgumentList = new ArrayList<>();
         commandArgumentList.addAll(Arrays.asList("-doclet", docletClassName));
