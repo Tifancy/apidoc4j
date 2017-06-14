@@ -15,6 +15,7 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.descriptor.PluginDescriptor;
 import org.apache.maven.project.MavenProject;
+import org.codehaus.plexus.classworlds.realm.ClassRealm;
 
 import java.io.*;
 import java.net.MalformedURLException;
@@ -124,22 +125,33 @@ public class APIDocMojo extends AbstractMojo {
     }
 
     public String resolveProjectDependenciesPath(){
+        List<File> dependencyFileList = this.convertProjectDependencyToFile();
+
+        StringBuilder classpathBuilder = new StringBuilder();
+        for (File file : dependencyFileList) {
+            classpathBuilder.append(file.getAbsolutePath()).append(File.pathSeparator);
+        }
+        classpathBuilder.deleteCharAt(classpathBuilder.length() - 1);
+        return classpathBuilder.toString();
+    }
+
+    public List<File> convertProjectDependencyToFile(){
         PluginDescriptor pluginDescriptor = (PluginDescriptor) this.getPluginContext().get("pluginDescriptor");
 
         Artifact pluginArtifact = pluginDescriptor.getPluginArtifact();
         StringBuilder filePathBuilder = new StringBuilder(pluginArtifact.getFile().toString());
-        int endIdx = filePathBuilder.indexOf(pluginArtifact.getGroupId().replace(".", File.separator));
-        String path = filePathBuilder.substring(0, endIdx);
 
-        StringBuilder classpathBuilder = new StringBuilder();
+        int endIdx = filePathBuilder.indexOf(pluginArtifact.getGroupId().replace(".", File.separator));
+        String mavenLocalRepoPath = filePathBuilder.substring(0, endIdx);
+
+        List<File> dependencyFileList = new ArrayList<>();
         List<Artifact> artifactList = pluginDescriptor.getArtifacts();
         for (Artifact artifact : artifactList) {
             String groupPath = artifact.getGroupId().replace(".", File.separator);
-            String jarPath = path + groupPath + File.separator + artifact.getArtifactId() + File.separator + artifact.getVersion() + File.separator + artifact.getArtifactId() + "-" + artifact.getVersion() + ".jar";
-            classpathBuilder.append(jarPath).append(File.pathSeparator);
+            String jarPath = mavenLocalRepoPath + groupPath + File.separator + artifact.getArtifactId() + File.separator + artifact.getVersion() + File.separator + artifact.getArtifactId() + "-" + artifact.getVersion() + ".jar";
+            dependencyFileList.add(new File(jarPath));
         }
-        classpathBuilder.deleteCharAt(classpathBuilder.length() - 1);
-        return classpathBuilder.toString();
+        return dependencyFileList;
     }
 
     public void setUp(){
@@ -154,7 +166,11 @@ public class APIDocMojo extends AbstractMojo {
         PluginDescriptor pluginDescriptor = (PluginDescriptor) this.getPluginContext().get("pluginDescriptor");
         File projectClasspath = new File(this.buildOutputDirectory);
         try {
-            pluginDescriptor.getClassRealm().addURL(projectClasspath.toURL());
+            ClassRealm mavenPluginClassLoader = pluginDescriptor.getClassRealm();
+            mavenPluginClassLoader.addURL(projectClasspath.toURL());
+            for (File jarFile : this.convertProjectDependencyToFile()) {
+                mavenPluginClassLoader.addURL(jarFile.toURL());
+            }
         } catch (MalformedURLException e) {
             throw new RuntimeException(e);
         }

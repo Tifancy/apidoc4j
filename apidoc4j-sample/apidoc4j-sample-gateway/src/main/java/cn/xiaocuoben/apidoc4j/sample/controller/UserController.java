@@ -1,6 +1,6 @@
 package cn.xiaocuoben.apidoc4j.sample.controller;
 
-import cn.xiaocuoben.apidoc4j.sample.entity.User;
+import cn.xiaocuoben.apidoc4j.sample.model.entity.User;
 import cn.xiaocuoben.apidoc4j.sample.request.UserLoginRequest;
 import cn.xiaocuoben.apidoc4j.sample.response.ResponseWrapper;
 import org.springframework.stereotype.Controller;

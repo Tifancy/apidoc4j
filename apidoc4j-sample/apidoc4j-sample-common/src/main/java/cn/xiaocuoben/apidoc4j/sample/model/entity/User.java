@@ -1,4 +1,4 @@
-package cn.xiaocuoben.apidoc4j.sample.entity;
+package cn.xiaocuoben.apidoc4j.sample.model.entity;
 
 import lombok.Data;
 

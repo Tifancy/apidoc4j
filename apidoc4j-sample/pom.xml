@@ -9,31 +9,19 @@
         <version>1.0-SNAPSHOT</version>
     </parent>
     <artifactId>apidoc4j-sample</artifactId>
-    <dependencies>
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-webmvc</artifactId>
-            <version>4.3.9.RELEASE</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <version>1.16.16</version>
-            <scope>provided</scope>
-        </dependency>
-    </dependencies>
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>cn.xiaocuoben</groupId>
-                <artifactId>apidoc4j-maven-plugin</artifactId>
-                <version>${project.parent.version}</version>
-                <configuration>
-                    <basePackage>cn.xiaocuoben.apidoc4j.sample</basePackage>
-                    <output>${project.basedir}/apidoc.md</output>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
+    <packaging>pom</packaging>
+    <modules>
+        <module>apidoc4j-sample-common</module>
+        <module>apidoc4j-sample-gateway</module>
+    </modules>
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-dependencies</artifactId>
+                <version>1.5.2.RELEASE</version>
+                <scope>provided</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 </project>
