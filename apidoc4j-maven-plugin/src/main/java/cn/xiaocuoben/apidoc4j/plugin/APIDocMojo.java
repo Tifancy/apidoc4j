@@ -72,7 +72,7 @@ public class APIDocMojo extends AbstractMojo {
         commandArgumentList.addAll(Arrays.asList("-sourcepath", this.resourceDirectory));
         commandArgumentList.addAll(Arrays.asList("-encoding", this.encoding));
 
-        String classpath = this.buildOutputDirectory + File.pathSeparator + this.resolveProjectDependenciesPath();
+        String classpath = this.buildOutputDirectory + File.pathSeparator + this.resolveProjectDependenciesPath() + File.pathSeparator + this.resolvePluginDependenciesPath();
         commandArgumentList.addAll(Arrays.asList("-classpath", classpath));
 
         commandArgumentList.addAll(Arrays.asList("-subpackages",this.basePackage));
@@ -121,8 +121,18 @@ public class APIDocMojo extends AbstractMojo {
         classpathBuilder.deleteCharAt(classpathBuilder.length() - 1);
         return classpathBuilder.toString();
     }
+    public String resolvePluginDependenciesPath(){
+        List<File> dependencyFileList = this.convertPluginDependencyToFile();
 
-    public List<File> convertProjectDependencyToFile(){
+        StringBuilder classpathBuilder = new StringBuilder();
+        for (File file : dependencyFileList) {
+            classpathBuilder.append(file.getAbsolutePath()).append(File.pathSeparator);
+        }
+        classpathBuilder.deleteCharAt(classpathBuilder.length() - 1);
+        return classpathBuilder.toString();
+    }
+
+    public List<File> convertPluginDependencyToFile(){
         PluginDescriptor pluginDescriptor = (PluginDescriptor) this.getPluginContext().get("pluginDescriptor");
 
         Artifact pluginArtifact = pluginDescriptor.getPluginArtifact();
@@ -133,6 +143,26 @@ public class APIDocMojo extends AbstractMojo {
 
         List<File> dependencyFileList = new ArrayList<>();
         List<Artifact> artifactList = pluginDescriptor.getArtifacts();
+        for (Artifact artifact : artifactList) {
+            String groupPath = artifact.getGroupId().replace(".", File.separator);
+            String jarPath = mavenLocalRepoPath + groupPath + File.separator + artifact.getArtifactId() + File.separator + artifact.getVersion() + File.separator + artifact.getArtifactId() + "-" + artifact.getVersion() + ".jar";
+            dependencyFileList.add(new File(jarPath));
+        }
+        return dependencyFileList;
+    }
+
+    public List<File> convertProjectDependencyToFile(){
+        PluginDescriptor pluginDescriptor = (PluginDescriptor) this.getPluginContext().get("pluginDescriptor");
+        MavenProject mavenProject = (MavenProject) this.getPluginContext().get("project");
+
+        Artifact pluginArtifact = pluginDescriptor.getPluginArtifact();
+        StringBuilder filePathBuilder = new StringBuilder(pluginArtifact.getFile().toString());
+
+        int endIdx = filePathBuilder.indexOf(pluginArtifact.getGroupId().replace(".", File.separator));
+        String mavenLocalRepoPath = filePathBuilder.substring(0, endIdx);
+
+        List<File> dependencyFileList = new ArrayList<>();
+        Set<Artifact> artifactList = mavenProject.getDependencyArtifacts();
         for (Artifact artifact : artifactList) {
             String groupPath = artifact.getGroupId().replace(".", File.separator);
             String jarPath = mavenLocalRepoPath + groupPath + File.separator + artifact.getArtifactId() + File.separator + artifact.getVersion() + File.separator + artifact.getArtifactId() + "-" + artifact.getVersion() + ".jar";

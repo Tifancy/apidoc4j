@@ -24,5 +24,9 @@ POST,GET /user/login
 返回值：
 
 ```
-
+{//实际数据
+	"username":"java.lang.String",//
+	"password":"java.lang.String",//
+	"user":
+}
 ```
