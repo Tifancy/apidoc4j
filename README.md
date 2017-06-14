@@ -24,4 +24,4 @@ mvn api4j:generate
 
 生成格式
 
-[生成结果示例](/apidoc4j-sample/apidoc.md)
+[生成结果示例](/apidoc4j-sample/apidoc4j-sample-gateway/apidoc.md)
