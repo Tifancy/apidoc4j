@@ -12,6 +12,7 @@
     <packaging>pom</packaging>
     <modules>
         <module>apidoc4j-sample-common</module>
+        <module>apidoc4j-sample-middle</module>
         <module>apidoc4j-sample-gateway</module>
     </modules>
     <dependencyManagement>

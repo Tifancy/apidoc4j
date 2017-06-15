@@ -12,7 +12,7 @@
     <dependencies>
         <dependency>
             <groupId>cn.xiaocuoben</groupId>
-            <artifactId>apidoc4j-sample-common</artifactId>
+            <artifactId>apidoc4j-sample-middle</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
