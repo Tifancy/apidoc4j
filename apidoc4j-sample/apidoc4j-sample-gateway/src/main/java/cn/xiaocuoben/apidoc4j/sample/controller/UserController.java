@@ -30,10 +30,10 @@ public class UserController {
         return responseWrapper;
     }
 
-    @RequestMapping(value = "/upload",method = RequestMethod.POST)
-    public void upload(MultipartFile[] files){
-
-    }
+//    @RequestMapping(value = "/upload",method = RequestMethod.POST)
+//    public void upload(MultipartFile[] files){
+//
+//    }
 
     private Object cc(UserLoginRequest userLoginRequest){
         return new Object();
