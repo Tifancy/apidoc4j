@@ -7,7 +7,6 @@ import cn.xiaocuoben.apidoc4j.utils.FreemarkerRenderUtils;
 import com.sun.tools.javadoc.Main;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.AbstractMojo;
@@ -15,25 +14,63 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.descriptor.PluginDescriptor;
 import org.apache.maven.project.MavenProject;
+import org.apache.maven.repository.RepositorySystem;
 import org.codehaus.plexus.classworlds.realm.ClassRealm;
+import org.eclipse.aether.RepositorySystemSession;
+import org.eclipse.aether.impl.ArtifactResolver;
+import org.eclipse.aether.repository.RemoteRepository;
+import org.eclipse.aether.resolution.ArtifactResult;
 
 import java.io.*;
 import java.net.MalformedURLException;
-import java.net.URL;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Set;
 
 /**
  * @author Frank
  * @date 2017-05-10
  * @goal generate
  * @phase package
-// * @configurator include-project-dependencies
+ * // * @configurator include-project-dependencies
  */
 @Data
 @EqualsAndHashCode(callSuper = false)
 public class APIDocMojo extends AbstractMojo {
+    /**
+     * The entry point to Aether, i.e. the component doing all the work.
+     *
+     * @component
+     */
+    private RepositorySystem repoSystem;
 
+    /**
+     * The current repository/network configuration of Maven.
+     *
+     * @parameter default-value="${repositorySystemSession}"
+     * @readonly
+     */
+    private RepositorySystemSession repoSession;
+
+    /**
+     * The project's remote repositories to use for the resolution of project dependencies.
+     *
+     * @parameter default-value="${project.remoteProjectRepositories}"
+     * @readonly
+     */
+    private List<RemoteRepository> projectRepos;
+
+    /**
+     * Used to look up Artifacts in the remote repository.
+     *
+     * @parameter expression=
+     * "${component.org.eclipse.aether.impl.ArtifactResolver}"
+     * @required
+     * @readonly
+     */
+    private ArtifactResolver artifactResolver;
     /**
      * @parameter expression="${project.build.sourceDirectory}"
      * @required
@@ -51,6 +88,7 @@ public class APIDocMojo extends AbstractMojo {
     private String output;
     /**
      * 项目编译输出目录
+     *
      * @parameter expression="${project.build.outputDirectory}"
      * @required
      */
@@ -67,6 +105,7 @@ public class APIDocMojo extends AbstractMojo {
         this.setUp();
         String docletClassName = APIDocDoclet.class.getName();
 
+
         List<String> commandArgumentList = new ArrayList<>();
         commandArgumentList.addAll(Arrays.asList("-doclet", docletClassName));
         commandArgumentList.addAll(Arrays.asList("-sourcepath", this.resourceDirectory));
@@ -75,11 +114,11 @@ public class APIDocMojo extends AbstractMojo {
         String classpath = this.buildOutputDirectory + File.pathSeparator + this.resolveProjectDependenciesPath() + File.pathSeparator + this.resolvePluginDependenciesPath();
         commandArgumentList.addAll(Arrays.asList("-classpath", classpath));
 
-        commandArgumentList.addAll(Arrays.asList("-subpackages",this.basePackage));
+        commandArgumentList.addAll(Arrays.asList("-subpackages", this.basePackage));
 
         String[] commandArray = commandArgumentList.toArray(new String[commandArgumentList.size()]);
-        if(this.getLog().isDebugEnabled()){
-            this.getLog().debug("javadoc " + StringUtils.join(commandArray," "));
+        if (this.getLog().isDebugEnabled()) {
+            this.getLog().debug("javadoc " + StringUtils.join(commandArray, " "));
         }
 
         int status = Main.execute(commandArray);
@@ -106,12 +145,12 @@ public class APIDocMojo extends AbstractMojo {
         return this;
     }
 
-    public Path convertToRelativePath(Path absolutePath){
+    public Path convertToRelativePath(Path absolutePath) {
         Path sourcePath = new File(this.resourceDirectory).toPath();
         return sourcePath.relativize(absolutePath);
     }
 
-    public String resolveProjectDependenciesPath(){
+    public String resolveProjectDependenciesPath() {
         List<File> dependencyFileList = this.convertProjectDependencyToFile();
 
         StringBuilder classpathBuilder = new StringBuilder();
@@ -121,7 +160,8 @@ public class APIDocMojo extends AbstractMojo {
         classpathBuilder.deleteCharAt(classpathBuilder.length() - 1);
         return classpathBuilder.toString();
     }
-    public String resolvePluginDependenciesPath(){
+
+    public String resolvePluginDependenciesPath() {
         List<File> dependencyFileList = this.convertPluginDependencyToFile();
 
         StringBuilder classpathBuilder = new StringBuilder();
@@ -132,9 +172,8 @@ public class APIDocMojo extends AbstractMojo {
         return classpathBuilder.toString();
     }
 
-    public List<File> convertPluginDependencyToFile(){
+    public List<File> convertPluginDependencyToFile() {
         PluginDescriptor pluginDescriptor = (PluginDescriptor) this.getPluginContext().get("pluginDescriptor");
-
         Artifact pluginArtifact = pluginDescriptor.getPluginArtifact();
         StringBuilder filePathBuilder = new StringBuilder(pluginArtifact.getFile().toString());
 
@@ -151,7 +190,7 @@ public class APIDocMojo extends AbstractMojo {
         return dependencyFileList;
     }
 
-    public List<File> convertProjectDependencyToFile(){
+    public List<File> convertProjectDependencyToFile() {
         PluginDescriptor pluginDescriptor = (PluginDescriptor) this.getPluginContext().get("pluginDescriptor");
         MavenProject mavenProject = (MavenProject) this.getPluginContext().get("project");
 
@@ -171,7 +210,7 @@ public class APIDocMojo extends AbstractMojo {
         return dependencyFileList;
     }
 
-    public void setUp(){
+    public void setUp() {
         //渲染配置
         try {
             File docFile = new File(ContextUtils.get(API4jConstant.DOC_OUTPUT_DIRECTORY)).toPath().toFile();

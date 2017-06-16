@@ -12,6 +12,10 @@
 
     <name>apidoc4j-maven-plugin</name>
 
+    <properties>
+        <aether.version>1.13.1</aether.version>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>com.sun</groupId>
@@ -53,6 +57,22 @@
             <groupId>org.apache.maven</groupId>
             <artifactId>maven-model</artifactId>
         </dependency>
+        <!--<dependency>-->
+            <!--<groupId>org.sonatype.aether</groupId>-->
+            <!--<artifactId>aether-impl</artifactId>-->
+            <!--<version>${aether.version}</version>-->
+            <!--<scope>provided</scope>-->
+        <!--</dependency>-->
+        <!--<dependency>-->
+            <!--<groupId>org.sonatype.aether</groupId>-->
+            <!--<artifactId>aether-api</artifactId>-->
+            <!--<version>${aether.version}</version>-->
+        <!--</dependency>-->
+        <!--<dependency>-->
+            <!--<groupId>org.sonatype.aether</groupId>-->
+            <!--<artifactId>aether-util</artifactId>-->
+            <!--<version>${aether.version}</version>-->
+        <!--</dependency>-->
     </dependencies>
     <build>
         <finalName>apidoc4j-maven-plugin</finalName>
