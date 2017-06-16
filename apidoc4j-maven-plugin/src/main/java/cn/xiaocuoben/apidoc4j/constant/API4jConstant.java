@@ -10,5 +10,5 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class API4jConstant {
 
-    public static String DOC_OUTPUT_DIRECTORY;
+    public static String DOC_OUTPUT_DIRECTORY = "DOC_OUTPUT_DIRECTORY";
 }

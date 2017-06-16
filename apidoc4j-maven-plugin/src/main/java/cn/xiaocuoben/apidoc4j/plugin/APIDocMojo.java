@@ -2,6 +2,7 @@ package cn.xiaocuoben.apidoc4j.plugin;
 
 import cn.xiaocuoben.apidoc4j.constant.API4jConstant;
 import cn.xiaocuoben.apidoc4j.doclet.APIDocDoclet;
+import cn.xiaocuoben.apidoc4j.log.PlexusLoggerAdapter;
 import cn.xiaocuoben.apidoc4j.utils.ContextUtils;
 import cn.xiaocuoben.apidoc4j.utils.FreemarkerRenderUtils;
 import com.sun.tools.javadoc.Main;
@@ -9,25 +10,28 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.artifact.Artifact;
+import org.apache.maven.artifact.resolver.filter.ArtifactFilter;
+import org.apache.maven.artifact.resolver.filter.ScopeArtifactFilter;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.descriptor.PluginDescriptor;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.repository.RepositorySystem;
+import org.apache.maven.shared.dependency.graph.DependencyGraphBuilderException;
+import org.apache.maven.shared.dependency.graph.DependencyNode;
+import org.apache.maven.shared.dependency.graph.internal.DefaultDependencyGraphBuilder;
+import org.apache.maven.shared.dependency.graph.traversal.CollectingDependencyNodeVisitor;
+import org.codehaus.plexus.PlexusContainer;
 import org.codehaus.plexus.classworlds.realm.ClassRealm;
 import org.eclipse.aether.RepositorySystemSession;
 import org.eclipse.aether.impl.ArtifactResolver;
 import org.eclipse.aether.repository.RemoteRepository;
-import org.eclipse.aether.resolution.ArtifactResult;
 
 import java.io.*;
 import java.net.MalformedURLException;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @author Frank
@@ -63,10 +67,14 @@ public class APIDocMojo extends AbstractMojo {
     private List<RemoteRepository> projectRepos;
 
     /**
+     * @component
+     */
+    private PlexusContainer container;
+
+    /**
      * Used to look up Artifacts in the remote repository.
      *
-     * @parameter expression=
-     * "${component.org.eclipse.aether.impl.ArtifactResolver}"
+     * @parameter expression="${component.org.eclipse.aether.impl.ArtifactResolver}"
      * @required
      * @readonly
      */
@@ -193,21 +201,49 @@ public class APIDocMojo extends AbstractMojo {
     public List<File> convertProjectDependencyToFile() {
         PluginDescriptor pluginDescriptor = (PluginDescriptor) this.getPluginContext().get("pluginDescriptor");
         MavenProject mavenProject = (MavenProject) this.getPluginContext().get("project");
+        DependencyNode node;
+        try {
+            DefaultDependencyGraphBuilder dependencyGraphBuilder = new DefaultDependencyGraphBuilder();
+            dependencyGraphBuilder.contextualize(this.container.getContext());
+            dependencyGraphBuilder.enableLogging(new PlexusLoggerAdapter(this.getLog()));
+            ArtifactFilter artifactFilter = new ScopeArtifactFilter("compile");
 
-        Artifact pluginArtifact = pluginDescriptor.getPluginArtifact();
-        StringBuilder filePathBuilder = new StringBuilder(pluginArtifact.getFile().toString());
+            Collection<MavenProject> projects = new HashSet<>();
+            //获取parent
+            mavenProject.getProjectReferences();
+            MavenProject parent = mavenProject;
+            for (parent = parent.getParent(); parent.getParent() != null; parent = parent.getParent()) {
+                projects.add(parent);
+            }
 
-        int endIdx = filePathBuilder.indexOf(pluginArtifact.getGroupId().replace(".", File.separator));
-        String mavenLocalRepoPath = filePathBuilder.substring(0, endIdx);
+            node = dependencyGraphBuilder.buildDependencyGraph(mavenProject, artifactFilter, projects);
+            CollectingDependencyNodeVisitor nodeVisitor = new CollectingDependencyNodeVisitor();
+            node.accept(nodeVisitor);
+            List<Artifact> artifactList = new ArrayList<>();
 
-        List<File> dependencyFileList = new ArrayList<>();
-        Set<Artifact> artifactList = mavenProject.getDependencyArtifacts();
-        for (Artifact artifact : artifactList) {
-            String groupPath = artifact.getGroupId().replace(".", File.separator);
-            String jarPath = mavenLocalRepoPath + groupPath + File.separator + artifact.getArtifactId() + File.separator + artifact.getVersion() + File.separator + artifact.getArtifactId() + "-" + artifact.getVersion() + ".jar";
-            dependencyFileList.add(new File(jarPath));
+            for (DependencyNode dependencyNode : nodeVisitor.getNodes()) {
+                artifactList.addAll(this.buildAllArtifactList(dependencyNode));
+            }
+
+            Artifact pluginArtifact = pluginDescriptor.getPluginArtifact();
+            StringBuilder filePathBuilder = new StringBuilder(pluginArtifact.getFile().toString());
+
+            int endIdx = filePathBuilder.indexOf(pluginArtifact.getGroupId().replace(".", File.separator));
+            String mavenLocalRepoPath = filePathBuilder.substring(0, endIdx);
+
+            List<File> dependencyFileList = new ArrayList<>();
+            for (Artifact artifact : artifactList) {
+                String groupPath = artifact.getGroupId().replace(".", File.separator);
+                String jarPath = mavenLocalRepoPath + groupPath + File.separator + artifact.getArtifactId() + File.separator + artifact.getVersion() + File.separator + artifact.getArtifactId() + "-" + artifact.getVersion() + ".jar";
+                dependencyFileList.add(new File(jarPath));
+            }
+            return dependencyFileList;
+        } catch (DependencyGraphBuilderException ex) {
+            this.getLog().warn("DependencyGraphBuilder could not resolve dependency graph.", ex);
+        } catch (Exception e) {
+            this.getLog().warn("Could not collect transient dependencies: " + e);
         }
-        return dependencyFileList;
+        return null;
     }
 
     public void setUp() {
@@ -230,5 +266,19 @@ public class APIDocMojo extends AbstractMojo {
         } catch (MalformedURLException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public List<Artifact> buildAllArtifactList(DependencyNode dependencyNode){
+        List<Artifact> dependencyNodeList = new ArrayList<>();
+        if(dependencyNode != null){
+            for (DependencyNode child : dependencyNode.getChildren()) {
+                dependencyNodeList.add(child.getArtifact());
+                if(child.getChildren() != null && child.getChildren().size() > 0){
+                    List<Artifact> children = buildAllArtifactList(child);
+                    dependencyNodeList.addAll(children);
+                }
+            }
+        }
+        return dependencyNodeList;
     }
 }

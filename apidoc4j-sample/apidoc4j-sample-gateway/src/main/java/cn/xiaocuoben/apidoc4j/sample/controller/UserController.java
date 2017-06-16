@@ -6,6 +6,7 @@ import cn.xiaocuoben.apidoc4j.sample.response.ResponseWrapper;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.multipart.MultipartFile;
 
 /**
  * 用户接口
@@ -27,6 +28,11 @@ public class UserController {
         responseWrapper.setData(user);
         responseWrapper.setMsg("登录成功");
         return responseWrapper;
+    }
+
+    @RequestMapping(value = "/upload",method = RequestMethod.POST)
+    public void upload(MultipartFile[] files){
+
     }
 
     private Object cc(UserLoginRequest userLoginRequest){
