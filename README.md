@@ -20,8 +20,13 @@ mvn api4j:generate
 
 支持框架：SpringMVC
 
-注意：暂时不支持复杂对象
-
 生成格式
 
 [生成结果示例](/apidoc4j-sample/apidoc4j-sample-gateway/apidoc.md)
+
+## 特性
+
+* [x] maven插件
+* [x] springMVC支持
+* [x] JSON支持
+* [x] 生成markdown
