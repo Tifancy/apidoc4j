@@ -2,9 +2,7 @@ package cn.xiaocuoben.apidoc4j.render;
 
 import cn.xiaocuoben.apidoc4j.model.ClassComment;
 import cn.xiaocuoben.apidoc4j.model.FieldComment;
-import cn.xiaocuoben.apidoc4j.model.MethodArgumentComment;
 import cn.xiaocuoben.apidoc4j.model.MethodComment;
-import org.codehaus.plexus.util.StringUtils;
 
 import java.util.List;
 
@@ -18,80 +16,59 @@ public class Filler {
         for (ClassComment classComment : classCommentList) {
             for (MethodComment methodComment : classComment.getMethodCommentList()) {
                 //参数
-                for (MethodArgumentComment methodArgumentComment : methodComment.getMethodArgumentCommentList()) {
-                    StringBuilder argumentJsonBuilder = new StringBuilder();
-                    for (FieldComment fieldComment : methodArgumentComment.getFieldCommentList()) {
-                        argumentJsonBuilder.append(this.renderFieldList(fieldComment, ""));
-                    }
-                    methodArgumentComment.setJson(argumentJsonBuilder.toString());
+                FieldComment argumentComment = methodComment.getMethodArgumentComment();
+
+                StringBuilder argumentJsonBuilder = new StringBuilder();
+                argumentJsonBuilder.append("[").append("\n").append("\t");
+                for (FieldComment fieldComment : argumentComment.getFieldCommentList()) {
+                    this.renderFieldList(fieldComment, "\t", argumentJsonBuilder);
                 }
+                argumentJsonBuilder.append("]");
+                methodComment.setMethodArgumentCommentJson(argumentJsonBuilder.toString());
 
                 //返回值
                 StringBuilder returnTypeJsonBuilder = new StringBuilder();
-                for (FieldComment comment : methodComment.getMethodReturnComment().getFieldCommentList()) {
-                    returnTypeJsonBuilder.append(this.renderFieldList(comment, ""));
-                }
+                this.renderFieldList(methodComment.getMethodReturnComment(), "\t", returnTypeJsonBuilder);
                 methodComment.setMethodReturnTypeCommentJson(returnTypeJsonBuilder.toString());
             }
         }
     }
 
-    public StringBuilder renderFieldList(FieldComment parent, String prefix) {
-        StringBuilder jsonBuilder = new StringBuilder();
-        if (parent != null && parent.getFieldCommentList() != null) {
-            List<FieldComment> parentFieldCommentList = parent.getFieldCommentList();
-            for (int i = 0; i < parent.getFieldCommentList().size(); i++) {
-                FieldComment fieldComment = parentFieldCommentList.get(i);
-                if (!fieldComment.getTypeName().contains("java.lang")) {
-                    jsonBuilder
-                            .append(prefix + "\t")
-                            .append("\"")
-                            .append(fieldComment.getName())
-                            .append("\"")
-                            .append(":");
-
-                    StringBuilder typeNameBuilder = this.renderFieldList(fieldComment, prefix + "\t");
-                    jsonBuilder.append(typeNameBuilder.toString());
-
-                    if (i != parentFieldCommentList.size() - 1) {
-                        jsonBuilder.append(",");
-                    }
-                    if (i == parentFieldCommentList.size() - 1) {
-                        jsonBuilder
-                                .append("\n")
-                                .append(prefix)
-                                .append("}");
-                    }
-                } else {
-                    if (i == 0) {
-                        jsonBuilder.append("{")
-                                .append("//")
-                                .append(parent.getComment())
-                                .append("\n");
-                    }
-                    jsonBuilder
-                            .append(prefix + "\t")
-                            .append("\"")
-                            .append(fieldComment.getName())
-                            .append("\"")
-                            .append(":")
-                            .append("\"");
-                    jsonBuilder.append(fieldComment.getTypeName())
-                            .append("\"");
-                    if (i != parentFieldCommentList.size() - 1) {
-                        jsonBuilder.append(",");
-                    }
-                    jsonBuilder.append("//").append(fieldComment.getComment()).append("\n");
-                    if (i == parentFieldCommentList.size() - 1) {
-                        jsonBuilder
-                                .append(prefix + "\t")
-                                .append("}");
-                    }
-                }
-            }
-        }else{
-            jsonBuilder.append("{}");
+    public StringBuilder renderFieldList(FieldComment parent, String prefix, StringBuilder jsonBuilder) {
+        if (parent == null || parent.getFieldCommentList() == null) {
+            return jsonBuilder.append("{}").append("\n");
         }
+        List<FieldComment> parentFieldCommentList = parent.getFieldCommentList();
+        //head
+        jsonBuilder.append("{")
+                .append("//")
+                .append(parent.getComment() == null ? "" : parent.getComment())
+                .append("\n");
+        for (int i = 0; i < parent.getFieldCommentList().size(); i++) {
+            FieldComment fieldComment = parentFieldCommentList.get(i);
+            if (!fieldComment.getTypeName().contains("java.lang")) {
+                jsonBuilder.append(prefix + "\t").append("\"").append(fieldComment.getName())
+                        .append("\"").append(":");
+                this.renderFieldList(fieldComment, prefix + "\t", jsonBuilder);
+            } else {
+                jsonBuilder
+                        .append(prefix + "\t")
+                        .append("\"")
+                        .append(fieldComment.getName())
+                        .append("\"")
+                        .append(":")
+                        .append("\"");
+                jsonBuilder.append(fieldComment.getTypeName())
+                        .append("\"");
+                jsonBuilder.append(",");
+                jsonBuilder.append("//").append(fieldComment.getComment()).append("\n");
+            }
+        }
+        //foot
+        jsonBuilder
+                .append(prefix)
+                .append("}")
+                .append("\n");
         return jsonBuilder;
     }
 }

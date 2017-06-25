@@ -12,9 +12,7 @@ ${methodComment.requestMethod} ${methodComment.uri}
 参数：
 
 ```
-<#list methodComment.methodArgumentCommentList as methodArgument>
-${methodArgument.json}
-</#list>
+${methodComment.methodArgumentCommentJson}
 ```
 
 返回值：

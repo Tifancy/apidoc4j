@@ -46,34 +46,35 @@ public class SpringMVCConverter implements Converter {
                 methodComment.setComment(methodDoc.commentText());
                 methodComment.setRawComment(methodDoc.getRawCommentText());
 
-                RequestMapping requestMapping = findMethodAnnotation(classDoc,methodDoc, RequestMapping.class);
+                RequestMapping requestMapping = findMethodAnnotation(classDoc, methodDoc, RequestMapping.class);
                 methodComment.setUri(controllerRequestMapping.value()[0] + requestMapping.value()[0]);
                 StringBuilder methodBuilder = new StringBuilder();
-                    if(requestMapping.method().length > 0){
-                        for (RequestMethod requestMethod : requestMapping.method()) {
-                            methodBuilder.append(requestMethod.name()).append(",");
-                        }
-                        methodBuilder.deleteCharAt(methodBuilder.length() - 1);
-                    }else{
-                        methodBuilder.append("GET");
+                if (requestMapping.method().length > 0) {
+                    for (RequestMethod requestMethod : requestMapping.method()) {
+                        methodBuilder.append(requestMethod.name()).append(",");
                     }
+                    methodBuilder.deleteCharAt(methodBuilder.length() - 1);
+                } else {
+                    methodBuilder.append("GET");
+                }
                 methodComment.setRequestMethod(methodBuilder.toString());
 
                 //参数
-                List<MethodArgumentComment> methodArgumentCommentList = new ArrayList<>();
-                MethodArgumentComment methodArgumentComment = new MethodArgumentComment();
+                FieldComment methodArgumentComment = new FieldComment();
 
                 for (Parameter parameter : methodDoc.parameters()) {
+                    FieldComment parameterFieldComment = new FieldComment();
                     List<FieldComment> fieldCommentList = convertToFieldCommentList(rootDoc, parameter);
-                    methodArgumentComment.setFieldCommentList(fieldCommentList);
-                    methodArgumentCommentList.add(methodArgumentComment);
+                    parameterFieldComment.setFieldCommentList(fieldCommentList);
+
+                    methodArgumentComment.getFieldCommentList().add(parameterFieldComment);
                 }
-                methodComment.setMethodArgumentCommentList(methodArgumentCommentList);
+                methodComment.setMethodArgumentComment(methodArgumentComment);
 
                 //返回值
-                List<FieldComment> fieldCommentList  = convertToFieldComment(rootDoc,methodDoc.returnType(),3,0);
+                List<FieldComment> fieldCommentList = convertToFieldComment(rootDoc, methodDoc.returnType(), 5, 0);
 
-                MethodReturnComment methodReturnComment = new MethodReturnComment();
+                FieldComment methodReturnComment = new FieldComment();
                 methodReturnComment.setFieldCommentList(fieldCommentList);
 
                 methodComment.setMethodReturnComment(methodReturnComment);

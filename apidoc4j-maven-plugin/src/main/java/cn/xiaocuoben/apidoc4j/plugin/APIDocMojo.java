@@ -80,11 +80,6 @@ public class APIDocMojo extends AbstractMojo {
      */
     private ArtifactResolver artifactResolver;
     /**
-     * @parameter expression="${project.build.sourceDirectory}"
-     * @required
-     */
-    private String resourceDirectory;
-    /**
      * @parameter expression="${basePackage}"
      * @required
      */
@@ -116,7 +111,8 @@ public class APIDocMojo extends AbstractMojo {
 
         List<String> commandArgumentList = new ArrayList<>();
         commandArgumentList.addAll(Arrays.asList("-doclet", docletClassName));
-        commandArgumentList.addAll(Arrays.asList("-sourcepath", this.resourceDirectory));
+//        commandArgumentList.addAll(Arrays.asList("-sourcepath", this.resourceDirectory));
+        commandArgumentList.addAll(Arrays.asList("-sourcepath", this.resolveMultiModuleSourcePathList()));
         commandArgumentList.addAll(Arrays.asList("-encoding", this.encoding));
 
         String classpath = this.buildOutputDirectory + File.pathSeparator + this.resolveProjectDependenciesPath() + File.pathSeparator + this.resolvePluginDependenciesPath();
@@ -135,15 +131,6 @@ public class APIDocMojo extends AbstractMojo {
         }
     }
 
-    public String getResourceDirectory() {
-        return resourceDirectory;
-    }
-
-    public APIDocMojo setResourceDirectory(String resourceDirectory) {
-        this.resourceDirectory = resourceDirectory;
-        return this;
-    }
-
     public String getOutput() {
         return output;
     }
@@ -153,9 +140,23 @@ public class APIDocMojo extends AbstractMojo {
         return this;
     }
 
-    public Path convertToRelativePath(Path absolutePath) {
-        Path sourcePath = new File(this.resourceDirectory).toPath();
-        return sourcePath.relativize(absolutePath);
+    public String resolveMultiModuleSourcePathList(){
+        MavenProject parent = (MavenProject) this.getPluginContext().get("project");
+
+        StringBuilder sourcePathBuilder = new StringBuilder();
+        //获取parent
+        for (; parent.getParent() != null; parent = parent.getParent()) {
+            for (String sourcePath : parent.getCompileSourceRoots()) {
+                sourcePathBuilder.append(sourcePath).append(File.pathSeparator);
+            }
+        }
+        return sourcePathBuilder.toString();
+    }
+
+    public void resolveSourcePath(MavenProject parent){
+        if(parent != null){
+            parent.getModules();
+        }
     }
 
     public String resolveProjectDependenciesPath() {
@@ -210,11 +211,10 @@ public class APIDocMojo extends AbstractMojo {
 
             Collection<MavenProject> projects = new HashSet<>();
             //获取parent
-            mavenProject.getProjectReferences();
             MavenProject parent = mavenProject;
             for (parent = parent.getParent(); parent.getParent() != null; parent = parent.getParent()) {
-                projects.add(parent);
             }
+            projects.add(parent);
 
             node = dependencyGraphBuilder.buildDependencyGraph(mavenProject, artifactFilter, projects);
             CollectingDependencyNodeVisitor nodeVisitor = new CollectingDependencyNodeVisitor();

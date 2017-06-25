@@ -21,12 +21,16 @@ public class MethodComment extends AbstractComment {
      */
     private String uri;
 
-    private List<MethodArgumentComment> methodArgumentCommentList = new ArrayList<>();
+    private FieldComment methodArgumentComment;
 
-    private MethodReturnComment methodReturnComment;
+    private FieldComment methodReturnComment;
 
     /**
      * 返回值JSON
      */
     private String methodReturnTypeCommentJson;
+    /**
+     * 参数JSON
+     */
+    private String methodArgumentCommentJson;
 }

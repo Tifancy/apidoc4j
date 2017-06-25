@@ -2,6 +2,9 @@ package cn.xiaocuoben.apidoc4j.sample.model.entity;
 
 import lombok.Data;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * 用户类
  * @author Frank
@@ -23,4 +26,8 @@ public class User {
      * 子用户
      */
     private User user;
+    /**
+     * 用户照片
+     */
+    private List<Photo> photoList = new ArrayList<>();
 }

@@ -10,23 +10,49 @@ POST,GET /user/login
 参数：
 
 ```
-{//测试
-	"userName":"java.lang.String",//用户名
-	"password":"java.lang.String",//密码
-	"userLoginRequest":{//测试
+[
+	{//
 		"userName":"java.lang.String",//用户名
 		"password":"java.lang.String",//密码
-		"userLoginRequest":{}
+		"userLoginRequest":{//测试
+			"userName":"java.lang.String",//用户名
+			"password":"java.lang.String",//密码
+			"userLoginRequest":{//测试
+				"userName":"java.lang.String",//用户名
+				"password":"java.lang.String",//密码
+				"userLoginRequest":{//测试
+					"userName":"java.lang.String",//用户名
+					"password":"java.lang.String",//密码
+					"userLoginRequest":{//测试
+						"userName":"java.lang.String",//用户名
+						"password":"java.lang.String",//密码
+						"userLoginRequest":{//测试
+							"userName":"java.lang.String",//用户名
+							"password":"java.lang.String",//密码
+							"userLoginRequest":{}
+						}
+					}
+				}
+			}
+		}
 	}
-}
+]
 ```
 
 返回值：
 
 ```
-{//实际数据
-	"username":"java.lang.String",//
-	"password":"java.lang.String",//
-	"user":
-}
+{//
+		"isSuccess":"java.lang.Boolean",//是否成功
+		"msg":"java.lang.String",//提示信息
+		"data":{//实际数据
+			"username":"java.lang.String",//
+			"password":"java.lang.String",//
+			"user":{//
+			}
+			"photoList":{//
+			}
+		}
+	}
+
 ```
