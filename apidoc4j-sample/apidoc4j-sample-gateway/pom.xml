@@ -29,6 +29,10 @@
                 <configuration>
                     <basePackage>cn.xiaocuoben.apidoc4j.sample</basePackage>
                     <output>${project.basedir}/apidoc.md</output>
+                    <resources>
+                        <resource>${project.build.sourceDirectory}</resource>
+                        <resource>${project.parent.basedir}\apidoc4j-sample-common\src\main\java</resource>
+                    </resources>
                 </configuration>
             </plugin>
         </plugins>

@@ -97,7 +97,13 @@ public class APIDocMojo extends AbstractMojo {
      */
     private String buildOutputDirectory;
     /**
-     * @arameter expression="${project.build.sourceEncoding}"
+     * @parameter expression="${resource}"
+     * @required
+     */
+    private List<String> resources = new ArrayList<>();
+
+    /**
+     * @parameter expression="${project.build.sourceEncoding}"
      * @required
      */
     private String encoding = "UTF-8";
@@ -141,14 +147,17 @@ public class APIDocMojo extends AbstractMojo {
     }
 
     public String resolveMultiModuleSourcePathList(){
-        MavenProject parent = (MavenProject) this.getPluginContext().get("project");
+//        MavenProject parent = (MavenProject) this.getPluginContext().get("project");
 
-        StringBuilder sourcePathBuilder = new StringBuilder();
         //获取parent
-        for (; parent.getParent() != null; parent = parent.getParent()) {
-            for (String sourcePath : parent.getCompileSourceRoots()) {
-                sourcePathBuilder.append(sourcePath).append(File.pathSeparator);
-            }
+//        for (; parent.getParent() != null; parent = parent.getParent()) {
+//            for (String sourcePath : parent.getCompileSourceRoots()) {
+//                sourcePathBuilder.append(sourcePath).append(File.pathSeparator);
+//            }
+//        }
+        StringBuilder sourcePathBuilder = new StringBuilder();
+        for (String resource : this.resources) {
+            sourcePathBuilder.append(resource).append(File.pathSeparator);
         }
         return sourcePathBuilder.toString();
     }
