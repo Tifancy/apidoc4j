@@ -4,7 +4,7 @@
 
     <groupId>cn.xiaocuoben</groupId>
     <artifactId>apidoc4j-maven-plugin-parent</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0.1-SNAPSHOT</version>
     <modules>
         <module>apidoc4j-sample</module>
         <module>apidoc4j-maven-plugin</module>
@@ -19,6 +19,7 @@
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
         <maven.compiler.compilerVersion>1.8</maven.compiler.compilerVersion>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven-plugin-api.version>3.1.0</maven-plugin-api.version>
 
         <commons-io.version>2.5</commons-io.version>

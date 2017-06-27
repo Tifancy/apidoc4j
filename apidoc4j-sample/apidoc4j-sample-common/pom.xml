@@ -6,7 +6,7 @@
     <parent>
         <artifactId>apidoc4j-sample</artifactId>
         <groupId>cn.xiaocuoben</groupId>
-        <version>1.0-SNAPSHOT</version>
+        <version>1.0.1-SNAPSHOT</version>
     </parent>
     <artifactId>apidoc4j-sample-common</artifactId>
     <dependencies>
