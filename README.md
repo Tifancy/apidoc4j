@@ -17,18 +17,25 @@ mvn clean install -Dmaven.test.skip=true
     <artifactId>apidoc4j-maven-plugin</artifactId>
     <version>1.0-SNAPSHOT</version>
     <configuration>
+        <!-- 你的包名，如果cn.xiaocuoben不包含你不想引入的包，那就不要用cn.xiaocuoben.apidoc4j -->
         <basePackage>cn.xiaocuoben.apidoc4j.sample</basePackage>
         <output>${project.basedir}/apidoc.md</output>
         <resources>
+            <!-- 源码目录，多模块项目就配置多个 -->
             <resource>${project.build.sourceDirectory}</resource>
             <resource>${project.parent.basedir}\apidoc4j-sample-common\src\main\java</resource>
         </resources>
     </configuration>
 </plugin>
 ```
-然后执行
+然后在项目目录执行
 ```
-mvn api4j:generate
+apidoc4j:generate
+```
+
+如果你的项目有像apidoc4j-sample一样的依赖关系，最好现在你工程的根目录执行一次
+```
+mvn clean install
 ```
 
 就会在项目的根目录生成apidoc.md文件
